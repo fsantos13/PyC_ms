@@ -1,0 +1,103 @@
+library(plyr)
+library(stringr)
+library(reshape)
+
+setwd("C:/Users/Fernanda/Research/Postdoc_2018/PyrogenicCincubation/FTIR DRIFT/msurface")
+#get the list of filenames to import. Need to have all of the datafiles you want to import in the same directory. 
+data1 <- list.files(path=".", full.names=TRUE)
+
+#llply - for each element of a list (for each file) apply the read.csv function and keep the results as a list
+import.list <- llply(data1, read.csv, header=FALSE)
+
+data2=rbind.fill(import.list)
+
+data2$sample<-sort(rep(c(1:1),1868))
+comb<-data2
+
+names(comb)[1]<-"wavenumber"
+names(comb)[2]<-"abs"
+
+comb$wave<-round(comb$wavenumber, 0)
+
+red1<-comb[comb$wavenumber>2839 & comb$wavenumber<2870,]
+red2<-comb[comb$wavenumber>2898 & comb$wavenumber<2976,]
+red3<-comb[comb$wavenumber>1570 & comb$wavenumber<1710,]
+red4<-comb[comb$wavenumber>1500 & comb$wavenumber<1550,]
+red5<-comb[comb$wavenumber>1360 & comb$wavenumber<1450,]
+
+#make a new data frame to hold corrected data
+ints<-as.data.frame(matrix(NA, nrow=length(sample),ncol=5))
+ints
+sample<-unique(comb$sample)
+sample
+ints$sample<-sample
+names(ints)[1:5]<-c("int_2800_3000", "int_1650_1710", "int_1590_1640", "int_1510_1565", "int_1360_1450")
+
+#now the rows of the "ints" data frame represent the samples, the columns represent the spectral regions of interest. Columns are the area under the curve between defined endpoints. "back" columns are the background area calculated as the distance between endpoints, which needs to be subtracted (in subsequent steps)
+
+#integrate over the defined regions 
+for(i in 1:length(sample)){ints[i,1]<-unlist(integrate(approxfun(red1$wave[red1$sample==sample[i]],red1$abs[red1$sample==sample[i]]), range(red1$wave)[1], range(red1$wave)[2]))$value}
+
+for(i in 1:length(sample)){ints[i,2]<-unlist(integrate(approxfun(red2$wave[red2$sample==sample[i]],red2$abs[red2$sample==sample[i]]), range(red2$wave)[1], range(red2$wave)[2]))$value}
+
+for(i in 1:length(sample)){ints[i,3]<-unlist(integrate(approxfun(red3$wave[red3$sample==sample[i]],red3$abs[red3$sample==sample[i]]), range(red3$wave)[1], range(red3$wave)[2], stop.on.error = FALSE))$value}
+
+for(i in 1:length(sample)){ints[i,4]<-unlist(integrate(approxfun(red4$wave[red4$sample==sample[i]],red4$abs[red4$sample==sample[i]]), range(red4$wave)[1], range(red4$wave)[2]))$value}
+
+for(i in 1:length(sample)){ints[i,5]<-unlist(integrate(approxfun(red5$wave[red5$sample==sample[i]],red5$abs[red5$sample==sample[i]]), range(red5$wave)[1], range(red5$wave)[2]))$value}
+
+#export data
+head(ints)
+write.csv(ints,file="IntegratedPeakData", row.names=FALSE)
+
+
+#Change folder to subsurface 
+
+
+setwd("C:/Users/Fernanda/Research/Postdoc_2018/PyrogenicCincubation/FTIR DRIFT/msubsurface")
+#get the list of filenames to import. Need to have all of the datafiles you want to import in the same directory. 
+data1 <- list.files(path=".", full.names=TRUE)
+
+#llply - for each element of a list (for each file) apply the read.csv function and keep the results as a list
+import.list <- llply(data1, read.csv, header=FALSE)
+
+data2=rbind.fill(import.list)
+
+data2$sample<-sort(rep(c(1:1),1868))
+comb<-data2
+
+names(comb)[1]<-"wavenumber"
+names(comb)[2]<-"abs"
+
+comb$wave<-round(comb$wavenumber, 0)
+
+red1<-comb[comb$wavenumber>2839 & comb$wavenumber<2870,]
+red2<-comb[comb$wavenumber>2898 & comb$wavenumber<2976,]
+red3<-comb[comb$wavenumber>1570 & comb$wavenumber<1710,]
+red4<-comb[comb$wavenumber>1500 & comb$wavenumber<1550,]
+red5<-comb[comb$wavenumber>1360 & comb$wavenumber<1450,]
+
+#make a new data frame to hold corrected data
+ints<-as.data.frame(matrix(NA, nrow=length(sample),ncol=5))
+ints
+sample<-unique(comb$sample)
+sample
+ints$sample<-sample
+names(ints)[1:5]<-c("int_2800_3000", "int_1650_1710", "int_1590_1640", "int_1510_1565", "int_1360_1450")
+
+#now the rows of the "ints" data frame represent the samples, the columns represent the spectral regions of interest. Columns are the area under the curve between defined endpoints. "back" columns are the background area calculated as the distance between endpoints, which needs to be subtracted (in subsequent steps)
+
+#integrate over the defined regions 
+for(i in 1:length(sample)){ints[i,1]<-unlist(integrate(approxfun(red1$wave[red1$sample==sample[i]],red1$abs[red1$sample==sample[i]]), range(red1$wave)[1], range(red1$wave)[2]))$value}
+
+for(i in 1:length(sample)){ints[i,2]<-unlist(integrate(approxfun(red2$wave[red2$sample==sample[i]],red2$abs[red2$sample==sample[i]]), range(red2$wave)[1], range(red2$wave)[2]))$value}
+
+for(i in 1:length(sample)){ints[i,3]<-unlist(integrate(approxfun(red3$wave[red3$sample==sample[i]],red3$abs[red3$sample==sample[i]]), range(red3$wave)[1], range(red3$wave)[2], stop.on.error = FALSE))$value}
+
+for(i in 1:length(sample)){ints[i,4]<-unlist(integrate(approxfun(red4$wave[red4$sample==sample[i]],red4$abs[red4$sample==sample[i]]), range(red4$wave)[1], range(red4$wave)[2]))$value}
+
+for(i in 1:length(sample)){ints[i,5]<-unlist(integrate(approxfun(red5$wave[red5$sample==sample[i]],red5$abs[red5$sample==sample[i]]), range(red5$wave)[1], range(red5$wave)[2]))$value}
+
+#export data
+head(ints)
+write.csv(ints,file="IntegratedPeakData", row.names=FALSE)
